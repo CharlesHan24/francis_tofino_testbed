@@ -1,0 +1,6 @@
+p4/p4
+    filter call_regexp_common C
+    filter remove_matches ^\s*--
+    filter remove_inline --.*$
+    extension pls
+    3rd_gen_scale 2.29
