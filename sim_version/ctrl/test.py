@@ -73,9 +73,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     graph = Graph(args.n)
-    if args.target == "hw":
-        graph.set_hw_mode()
-
     if args.n == 15:
         graph.construct_fattree_3()
     else:
@@ -90,6 +87,7 @@ if __name__ == "__main__":
         failed_edge = (-1, -1)
 
     slow_treeroots = get_slow_treeroots(args.n)
+    pdb.set_trace()
 
     if args.skip_running == 0:
         grpc_addr = "localhost:50052"
@@ -97,20 +95,28 @@ if __name__ == "__main__":
         
 
         print("Bringing up ports.")
-        if args.target == "sim":
-            loopback_mode = "BF_LPBK_NONE"
-        else:
-            loopback_mode = "BF_LPBK_MAC_NEAR"
-
         for i in range(graph.m):
-            port_up(ctrl_manager, i, loopback_mode)
+            port_up(ctrl_manager, i)
         
-        port_up(ctrl_manager, RECIRC_PORT, loopback_mode)
-        port_up(ctrl_manager, RECIRC_PORT ^ 1, loopback_mode)
+        port_up(ctrl_manager, RECIRC_PORT)
+        port_up(ctrl_manager, RECIRC_PORT ^ 1)
+
         
         if args.target == "hw":
             assert(args.n == 15)
             
+            # bridge setups
+            print("Setting up the bridges...")
+            br_id = -1
+            for i in range(graph.n):
+                for j in graph.edge[i]:
+                    if i < j and (i, j) != failed_edge and (j, i) != failed_edge:
+                        br_id += 1
+                        os.system("sudo ip link add name br{} type bridge".format(br_id))
+                        os.system("sudo ip link set dev br{} up".format(br_id))
+                        os.system("sudo ip link set eth{} master br{}".format(graph.lookup_global_id(i, j), br_id))
+                        os.system("sudo ip link set eth{} master br{}".format(graph.lookup_global_id(j, i), br_id))
+            os.system("ip a show br0")
 
         print("Intiaializing the controllers...")
 

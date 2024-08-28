@@ -23,6 +23,7 @@ class FRANCIS(Packet):
         XByteField("argmax", 0),
         XByteField("self_id", 0),
         XShortField("msg_id", 0),
+        XByteField("ping_id", 0)
     ]
 
 def extract_pkts(raw_pkts):

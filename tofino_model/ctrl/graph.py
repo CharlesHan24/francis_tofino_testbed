@@ -6,11 +6,7 @@ class Graph(object):
         self.edge = []
         for i in range(n):
             self.edge.append([]) # ordered list
-        self.mode = "sim"
-    
-    def set_hw_mode(self):
-        self.mode = "hw"
-
+        
     def add_edge(self, u, v):
         self.edge[u].append(v)
         self.edge[v].append(u)
@@ -35,7 +31,7 @@ class Graph(object):
             if self.original_edges[u][i] == v:
                 return i
 
-    def lookup_global_id_self(self, u, v): # looking up the port number according to the simulation-based port numbering scheme of its LOCAL PORTS: incrementally assigning ports looping over the nodes from 0 to n - 1. For hardware mode, we need to use the lookup_global_id interface for ingress/egress port translation. The egress port number should be the ingress port number of its peer so as to allow transmitting the packet through loopback, i.e. lookup_global_id(u, v) = lookup_global_id_self(v, u). In this case, packet to be delivered at the egress pipeline appear exactly at the its peer's ports, and later on emerges at its peer's ingress pipeline after loopback.
+    def lookup_global_id(self, u, v):
         if self.n == 20:
             base = u * 4 if u < 12 else 12 * 4 + (u - 12) * 2
         else:
@@ -47,22 +43,7 @@ class Graph(object):
                 base = 30 + 2 * (u - 9)
         
         return base + self.lookup_id(u, v)
-
-    def lookup_global_id(self, u, v): # looking up the port id of its egress pipeline which, in case of the hardware mode being set, should be the peer's port id for later loopback && appearing at the peer's ingress pipeline.
-        print(self.mode)
-        if self.mode == "hw":
-            return self.lookup_global_id_self(v, u)
-        else:
-            return self.lookup_global_id_self(u, v)
     
-    def igport_egport_translation(self, u, global_id):
-        if self.mode == "sim":
-            return global_id
-        else:
-            for neighbor in self.edge[u]:
-                if self.lookup_global_id_self(u, neighbor) == global_id:
-                    return self.lookup_global_id_self(neighbor, u)
-
     def construct_fattree_4(self):
         for i in range(4):
             for j in range(4):
@@ -104,7 +85,7 @@ class Graph(object):
                 if not visited[v]:
                     visited[v] = True
                     print("father {} is {}".format(v, u))
-                    self.parent[v] = self.lookup_global_id_self(v, u) # parent is defined as the ingress port so as to be consistent with the data plane implementation!
+                    self.parent[v] = self.lookup_global_id(v, u)
                     self.children[u] |= (1 << i)
                     queue.append(v)
 

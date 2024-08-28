@@ -36,7 +36,6 @@ RECIRC_PORT = 54
 MINUS_ONE_PORT = 0xf
 
 NUM_PHYSICAL_PORTS = 64
-CPU_PORT = 64
 
 SIMULATION_TIME_MULTIPLIER = 40000
 
@@ -153,7 +152,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             )
             data_dict = next(resp)[0].to_dict()
             tri_value = data_dict["trigger_counter"]
-            if tri_value >= 5:
+            if tri_value >= 10:
                 break
             time.sleep(0.1)
         print(time.time() - cur_time)
@@ -301,7 +300,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
             
         
             for k in range(n):
-                ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_ping_info_action", ["slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [cur_root_map[k], fat_tree_graph.calc_neighbors(k) + 1, 0, i * n + k], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255]) # 8 bts for self_id. msg_index = (cur_round (msg_id) % 2) << 5 + k.
+                ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_ping_info_action", ["slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [cur_root_map[k], fat_tree_graph.calc_neighbors(k), 0, i * n + k], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255]) # 8 bts for self_id. msg_index = (cur_round (msg_id) % 2) << 5 + k.
                 total_entries += 1
 
     # For recirc messages
@@ -313,7 +312,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
     
         for k in range(n): # self_id
 
-            ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [k, cur_root_map[k], fat_tree_graph.calc_neighbors(k) + 1, 0, i * n + k], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255])
+            ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [k, cur_root_map[k], fat_tree_graph.calc_neighbors(k), 0, i * n + k], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255])
             total_entries += 1
 
     # For other messages
@@ -321,7 +320,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
     for msg_type in msg_types:
         for self_id in range(n):
             for port_delta in range(len(fat_tree_graph.edge[self_id])):
-                port = fat_tree_graph.lookup_global_id_self(self_id, fat_tree_graph.edge[self_id][port_delta]) # lookup the ingress port number of itself
+                port = fat_tree_graph.lookup_global_id(self_id, fat_tree_graph.edge[self_id][port_delta])
                 fake_redund_self_id_match = 0
                 # if self_id < 12:
                 #     port = port_delta + self_id * 4
@@ -329,7 +328,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
                 #     port = 48 + (self_id - 12) * 2 + port_delta
 
                 for k in range(ntrees):
-                    ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, k, fake_redund_self_id_match], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [self_id, cur_root_map[self_id], fat_tree_graph.calc_neighbors(self_id) + 1, 1 << port_delta, k * n + self_id], is_ternary=True, ternary_mask_list=[-1, 255, -1, 0])
+                    ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, k, fake_redund_self_id_match], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [self_id, cur_root_map[self_id], fat_tree_graph.calc_neighbors(self_id), 1 << port_delta, k * n + self_id], is_ternary=True, ternary_mask_list=[-1, 255, -1, 0])
                     total_entries += 1
     # pdb.set_trace()
 
@@ -388,7 +387,7 @@ def calc_mcast_port_ids(fat_tree_graph: Graph, mcast_bitmap, self_id):
     ret_ports = []
     for i in range(4):
         if mcast_bitmap & (1 << i):
-            ret_ports.append(fat_tree_graph.lookup_global_id(self_id, fat_tree_graph.edge[self_id][i])) # egress port
+            ret_ports.append(fat_tree_graph.lookup_global_id(self_id, fat_tree_graph.edge[self_id][i]))
     return ret_ports
 
 def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
@@ -406,7 +405,7 @@ def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
             num_neighbors = fat_tree_graph.calc_neighbors(self_id)
             unicast_port_list = [-1]
             for neighbor in fat_tree_graph.edge[self_id]:
-                unicast_port_list.append(fat_tree_graph.lookup_global_id_self(self_id, neighbor)) # port number as appeared in the ingress pipeline should be "global_id_self"
+                unicast_port_list.append(fat_tree_graph.lookup_global_id(self_id, neighbor))
 
             for unicast_port in unicast_port_list:
 
@@ -424,8 +423,7 @@ def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
                             rids.append(1)
 
                         if to_ack == 1 and unicast_port != -1:
-                            eg_unicast_port = fat_tree_graph.igport_egport_translation(self_id, unicast_port)
-                            dpids.append([eg_unicast_port])
+                            dpids.append([unicast_port])
                             rids.append(2)
                         
 
@@ -440,48 +438,54 @@ def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
             for is_algo_sync in [0, 1]:
                 for to_recirc in [0, 1]:
                     num_neighbors = fat_tree_graph.calc_neighbors(self_id)
-                    to_ack = 0
                     
                     unicast_port_list = [-1]
                     for neighbor in fat_tree_graph.edge[self_id]:
-                        unicast_port_list.append(fat_tree_graph.lookup_global_id_self(self_id, neighbor)) # port number as appeared in the ingress pipeline should be "global_id_self"
+                        unicast_port_list.append(fat_tree_graph.lookup_global_id(self_id, neighbor))
 
                     for unicast_port in unicast_port_list:
-    
-                        for mcast_bitmap in [0, (1 << num_neighbors) - 1]: # mcast groups will only be 0 or ALL, and if unicast_port_base != -1 then mcast_bitmap will be 0
-                            if mcast_bitmap != 0 and unicast_port != -1:
-                                continue
-                            mcast_grp_id += 1
-                            if unicast_port == -1:
-                                mcast_port_ids = calc_mcast_port_ids(fat_tree_graph, mcast_bitmap, self_id)
-                            else:
-                                eg_unicast_port = fat_tree_graph.igport_egport_translation(self_id, unicast_port)
-                                mcast_port_ids = [eg_unicast_port]
-                            rids = []
-                            dpids = []
-                            if unicast_port != -1 or mcast_bitmap != 0:
-                                rids.append(0)
-                                dpids.append(mcast_port_ids)
 
-                            if is_algo_sync == 1:
-                                dpids.append(calc_mcast_port_ids(fat_tree_graph, (1 << num_neighbors) - 1, self_id))
-                                rids.append(1)
+                        for to_ack in [0, 1]:
+                            # for ingress_port in unicast_port_list:    
+                            #     if ingress_port == -1:
+                            #         continue    
+                            #     if ingress_port != unicast_port_list[1] and to_ack == 0:
+                            #         continue
                             
-
-                            if to_recirc == 1:
-                                if fat_tree_graph.mode == "sim": # carefully handle the case for recirculation port translation
-                                    dpids.append([RECIRC_PORT])
+                            for mcast_bitmap in [0, (1 << num_neighbors) - 1]: # mcast groups will only be 0 or ALL, and if unicast_port_base != -1 then mcast_bitmap will be 0
+                                if mcast_bitmap != 0 and unicast_port != -1:
+                                    continue
+                                mcast_grp_id += 1
+                                if unicast_port == -1:
+                                    mcast_port_ids = calc_mcast_port_ids(fat_tree_graph, mcast_bitmap, self_id)
                                 else:
-                                    dpids.append([RECIRC_PORT ^ 1])
-                                rids.append(3)
-                            
-                            if mcast_bitmap != 0:
-                                mcast_bitmap = MINUS_ONE_PORT
+                                    mcast_port_ids = [unicast_port]
+                                rids = []
+                                dpids = []
+                                if unicast_port != -1 or mcast_bitmap != 0:
+                                    rids.append(0)
+                                    dpids.append(mcast_port_ids)
 
-                            ctrl_manager.add_multinode_mc_grp(mcast_grp_id, [dpids, rids])
-                            
-                            
-                            ctrl_manager.table_add("mcast_lookup_tab", ["hdr.pld.self_id", "ig_md.mcast_bitmap", "ig_md.is_algo_sync", "ig_md.unicast_port", "ig_md.to_recirc", "ig_md.to_ack", "hdr.msg_type.type"], [self_id, mcast_bitmap, is_algo_sync, unicast_port, to_recirc, to_ack, msg_type], "mcast_action", ["mgrp1"], [mcast_grp_id])
+                                if is_algo_sync == 1:
+                                    dpids.append(calc_mcast_port_ids(fat_tree_graph, (1 << num_neighbors) - 1, self_id))
+                                    rids.append(1)
+                                
+                                
+                                if to_ack == 1:
+                                    dpids.append(calc_mcast_port_ids(fat_tree_graph, (1 << num_neighbors) - 1, self_id))
+                                    rids.append(2)
+
+                                if to_recirc == 1:
+                                    dpids.append([RECIRC_PORT])
+                                    rids.append(3)
+                                
+                                if mcast_bitmap != 0:
+                                    mcast_bitmap = MINUS_ONE_PORT
+
+                                ctrl_manager.add_multinode_mc_grp(mcast_grp_id, [dpids, rids])
+                                
+                                
+                                ctrl_manager.table_add("mcast_lookup_tab", ["hdr.pld.self_id", "ig_md.mcast_bitmap", "ig_md.is_algo_sync", "ig_md.unicast_port", "ig_md.to_recirc", "ig_md.to_ack", "hdr.msg_type.type"], [self_id, mcast_bitmap, is_algo_sync, unicast_port, to_recirc, to_ack, msg_type], "mcast_action", ["mgrp1"], [mcast_grp_id])
                                 
 
         msg_type = TYPE_RECIRC # TYPE_RECIRC messages won't appear in the ingress pipeline
@@ -518,26 +522,10 @@ def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
         mcast_bitmap = (1 << fat_tree_graph.m) - 1
         is_algo_sync = 0
 
-        mcast_grp_id += 1 # Assuming that the multicast packets appear exactly in the same order as those that are specified in mcast_port_ids! This way, we guarantee that pinged sync packets for each logical switch are sent "atomically": sync packets of other switches are pinged after the current switch finishes.
-        rids = []
-        dpids = []
-        for i in range(n):
-            rids.append(i)
-            dpid = []
-            for neighbor in fat_tree_graph.edge[i]:
-                dpid.append(fat_tree_graph.lookup_global_id(i, neighbor))
-            dpids.append(dpid)
-        # mcast_port_ids = calc_mcast_global_port_ids(fat_tree_graph, mcast_bitmap, self_id)
-        # rids = [0]
-        # dpids = [mcast_port_ids]
-
-        mcast_port_ids = []
-        for i in range(fat_tree_graph.n):
-            y = fat_tree_graph.edge[i][0]
-            mcast_port_ids.append(fat_tree_graph.lookup_global_id_self(i, y)) # pinging itself
-        rids.append(16)
-        dpids.append(mcast_port_ids)
-
+        mcast_grp_id += 1
+        mcast_port_ids = calc_mcast_global_port_ids(fat_tree_graph, mcast_bitmap, self_id)
+        rids = [0]
+        dpids = [mcast_port_ids]
         ctrl_manager.add_multinode_mc_grp(mcast_grp_id, [dpids, rids])
         ctrl_manager.table_add("mcast_lookup_tab", ["hdr.pld.self_id", "ig_md.mcast_bitmap", "ig_md.is_algo_sync", "ig_md.unicast_port", "ig_md.to_recirc", "ig_md.to_ack", "hdr.msg_type.type"], [self_id, MINUS_ONE_PORT, is_algo_sync, unicast_port, to_recirc, to_ack, msg_type], "mcast_action", ["mgrp1"], [mcast_grp_id])
 
@@ -570,8 +558,6 @@ def config_egress_regs(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
 
     # store_sync_round_id initialized to all-zeros
     ctrl_manager.reset_register("store_sync_round_id")
-    for i in range(NUM_PHYSICAL_PORTS):
-        ctrl_manager.insert_entry("store_sync_round_id", i, "SwitchEgress.store_sync_round_id.f1", 64)
 
     # last_transmitted_time initialized to all-zeros
     ctrl_manager.reset_register("last_transmitted_time")
@@ -720,12 +706,9 @@ def config_egress_tables(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
         default_action = NoAction();
     }
     """
-    for self_id in range(fat_tree_graph.n): # TODO: not working on sim topology
-        for j, neighbor_id in enumerate(fat_tree_graph.edge[self_id]):
-            ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [fat_tree_graph.lookup_global_id(self_id, neighbor_id)], "egress_self_id_get_action", ["self_id", "peer_id", "peer_port", "count_incre"], [self_id, neighbor_id, fat_tree_graph.lookup_global_id_self(self_id, neighbor_id), (fat_tree_graph.calc_neighbors(self_id) + 1) if j == 0 else 0]) # egress
-    
-    ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [RECIRC_PORT ^ 1], "NoAction", [], []) # egress
-    ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [CPU_PORT], "NoAction", [], []) # egress
+    for self_id in range(fat_tree_graph.n):
+        for neighbor_id in fat_tree_graph.edge[self_id]:
+            ctrl_manager.table_add("egress_self_id_tab", ["eg_intr_md.egress_port"], [fat_tree_graph.lookup_global_id(self_id, neighbor_id)], "egress_self_id_get_action", ["self_id"], [self_id])
 
     return []
 
@@ -733,7 +716,7 @@ def config_egress_tables(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
 
 
 
-def port_up(ctrl_manager: Ctrl_Manager, port, loopback_mode):
+def port_up(ctrl_manager: Ctrl_Manager, port):
     speed = "BF_SPEED_10G"
     fec = "BF_FEC_TYP_NONE"
 
@@ -742,9 +725,8 @@ def port_up(ctrl_manager: Ctrl_Manager, port, loopback_mode):
     
     port_table.entry_add(
         target,
-        [port_table.make_key([gc.KeyTuple("$DEV_PORT", port)])],
-        [port_table.make_data([gc.DataTuple("$SPEED", str_val=speed),
-                                    gc.DataTuple("$FEC", str_val=fec),
-                                    gc.DataTuple("$PORT_ENABLE", bool_val=True),
-                                    gc.DataTuple("$LOOPBACK_MODE", str_val=loopback_mode)])])
+        [port_table.make_key([gc.KeyTuple('$DEV_PORT', port)])],
+        [port_table.make_data([gc.DataTuple('$SPEED', str_val=speed),
+                                    gc.DataTuple('$FEC', str_val=fec),
+                                    gc.DataTuple('$PORT_ENABLE', bool_val=True)])])
     

@@ -28,23 +28,18 @@ control SwitchEgress(
         eg_intr_md_for_dprsr.drop_ctl = 1;
     }
 
-    Register<bit<8>, bit<8> > (NUM_PHYSICAL_PORTS) store_sync_round_id; // values > 32 means no sync message stored for now -- its the value for the last round.
+    Register<bit<8>, bit<8> > (NUM_PHYSICAL_PORTS) store_sync_round_id;
     RegisterAction<bit<8>, bit<8>, bit<8> > (store_sync_round_id) store_sync_round_id_write_action = {
         void apply(inout bit<8> value) {
-            value = hdr.pld.round_id;
+            value = hdr.pld.round_id + 1;
         }
     };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (store_sync_round_id) store_sync_round_id_read_update_action = { // read and then reset
+    RegisterAction<bit<8>, bit<8>, bit<8> > (store_sync_round_id) store_sync_round_id_read_action = { // read and then reset
         void apply(inout bit<8> value, out bit<8> read_value) {
-            read_value = value;
-            if (value < 32) {
-                value = 64 - value;
+            read_value = value - 1;
+            if (value != 0) {
+                value = 0;
             }
-        }
-    };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (store_sync_round_id) store_sync_round_id_read_action = {
-        void apply(inout bit<8> value, out bit<8> read_value) {
-            read_value = value;
         }
     };
 
@@ -131,29 +126,41 @@ control SwitchEgress(
         }
     };
 
-    Register<bit<8>, bit<8> > (256) stored_sync_counter;
-    RegisterAction<bit<8>, bit<8>, bit<8> > (stored_sync_counter) stored_sync_counter_increment = {
+    Register<bit<8>, bit<8> > (NUM_VIRT_SWITCH) waited_algo_msg_cnt;
+    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_increment = {
         void apply(inout bit<8> value) {
-            value = value + eg_md.count_incre;
+            value = value + 1;
         }
     };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (stored_sync_counter) stored_sync_counter_decrement = {
+    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_decrement = {
         void apply(inout bit<8> value) {
             value = value - 1;
         }
     };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (stored_sync_counter) stored_sync_counter_read_action = { // return 1 if there's no stored message left.
+    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_read = {
         void apply(inout bit<8> value, out bit<8> read_value) {
-            if (value == 1) {
-                value = 0;
-                read_value = 1;
+            read_value = value;
+        }
+    };
+
+    Register<bit<8>, bit<8> > (NUM_VIRT_SWITCH) waited_last_id;
+    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_last_id) waited_last_id_write_action = {
+        void apply(inout bit<8> value) {
+            value = hdr.pld.ping_id;
+        }
+    };
+    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_last_id) waited_last_id_read_action = {
+        void apply(inout bit<8> value, out bit<8> read_value) {
+            if (hdr.pld.ping_id - value >= 1) {
+                read_value = 0;
             }
             else {
-                read_value = 0;
+                read_value = 1;
             }
         }
     };
-    
+
+
 
     action lookup_pow2_recirc_idx_action(bit<8> pow2_result, bit<2> recirc_idx) {
         eg_md.pow2_result = pow2_result;
@@ -232,11 +239,8 @@ control SwitchEgress(
         default_action = comp_last_timestamp_action(0);
     }
 
-    action egress_self_id_get_action(bit<8> self_id, bit<8> peer_id, bit<8> peer_port, bit<8> count_incre) {
-        eg_md.peer_id = peer_id;
-        eg_md.peer_port = peer_port;
+    action egress_self_id_get_action(bit<8> self_id) {
         hdr.pld.self_id = self_id;
-        eg_md.count_incre = count_incre; // neighbor + 1
     }
     action eg_self_id_mark_to_drop() {
         eg_intr_md_for_dprsr.drop_ctl = 1;
@@ -245,60 +249,22 @@ control SwitchEgress(
 
     table egress_self_id_tab {
         key = {
-            eg_md.egress_port: exact;
+            eg_intr_md.egress_port: exact;
         }
         actions = {
             egress_self_id_get_action;
             eg_self_id_mark_to_drop;
-            NoAction; // for recirc_port 55
         }
         size = 64;
         default_action = eg_self_id_mark_to_drop();
     }
-
-    Register<bit<8>, bit<8> > (NUM_VIRT_SWITCH) waited_algo_msg_cnt;
-    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_increment = {
-        void apply(inout bit<8> value) {
-            value = value + 1;
-        }
-    };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_decrement = {
-        void apply(inout bit<8> value) {
-            value = value - 1;
-        }
-    };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_algo_msg_cnt) waited_algo_msg_cnt_read = {
-        void apply(inout bit<8> value, out bit<8> read_value) {
-            read_value = value;
-        }
-    };
-
-    Register<bit<8>, bit<8> > (NUM_VIRT_SWITCH) waited_last_id;
-    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_last_id) waited_last_id_write_action = {
-        void apply(inout bit<8> value) {
-            value = hdr.pld.ping_id;
-        }
-    };
-    RegisterAction<bit<8>, bit<8>, bit<8> > (waited_last_id) waited_last_id_read_action = {
-        void apply(inout bit<8> value, out bit<8> read_value) {
-            if (hdr.pld.ping_id - value >= 1) {
-                read_value = 0;
-            }
-            else {
-                read_value = 1;
-            }
-        }
-    };
     
     apply {
-        @stage(0){
-            egress_self_id_tab.apply();
-        }
-
-        if ((hdr.msg_type.type == TYPE_SYNC) || (eg_intr_md.egress_port == 64)) { // send synchronization messages in a non-blocking way and don't count it towards our dist algo packets (so does not consider them for rate limit)
+        if (hdr.msg_type.type == TYPE_SYNC) { // send synchronization messages in a non-blocking way and don't count it towards our dist algo packets (so does not consider them for rate limit)
             // hdr.recirc_msg.setInvalid(); // we assert that recirc_msg does not exist 
-        } // 64 is the CPU port
-        else if ((hdr.msg_type.type == TYPE_PING_ALGO) && (eg_intr_md.egress_rid < 16)) { // ping
+        }
+        else if (hdr.msg_type.type == TYPE_PING_ALGO) {
+            egress_self_id_tab.apply();
             @stage(1){
                 eg_md.last_timestamp = last_transmitted_time_read_update_action.execute((bit<8>)eg_md.egress_port);
             }
@@ -317,23 +283,25 @@ control SwitchEgress(
                     eg_md.waiting_list = queue_list1_extract_action.execute((bit<8>)eg_md.egress_port);
                 }
                 if (eg_md.waiting_list == 0) {
-                    @stage(4){
+                    @stage(5){
                         eg_md.waiting_list = queue_list2_extract_action.execute((bit<8>)eg_md.egress_port);
                     }
                 }
 
                 if (eg_md.waiting_list != 0) {
-                    @stage(5){
+                    @stage(6){
                         lookup_lowbit_tab.apply();
                     }
-                    @stage(6){
+
+                    @stage(7){
+                        eg_md.store_content_lower = algo_store_lower_read_action.execute(eg_md.index);
+                    }
+
+                    @stage(8) {
                         waited_algo_msg_cnt_decrement.execute(hdr.pld.self_id);
                     }
-                    @stage(7) {
+                    @stage(9) {
                         waited_last_id_write_action.execute(hdr.pld.self_id);
-                    }
-                    @stage(8){
-                        eg_md.store_content_lower = algo_store_lower_read_action.execute(eg_md.index);
                     }
 
                     @stage(11){
@@ -344,26 +312,24 @@ control SwitchEgress(
                 else {
                     bit<8> cnt;
                     bit<8> is_this_id;
-                    @stage(6){
+                    @stage(8){
                         cnt = waited_algo_msg_cnt_read.execute(hdr.pld.self_id);
                     }
-                    @stage(7) {
+                    @stage(9) {
                         is_this_id = waited_last_id_read_action.execute(hdr.pld.self_id);
                     }
                     if ((cnt == 0) && (is_this_id == 0)){ // cnt == 0 and (hdr.pld.sync_or_fail_ping - last_id >= 1)
-                        @stage(9){
-                            hdr.pld.round_id = store_sync_round_id_read_update_action.execute((bit<8>)eg_md.egress_port);
+                        @stage(10){
+                            eg_md.round_id = store_sync_round_id_read_action.execute((bit<8>)eg_md.egress_port);
                         }
-                        if (hdr.pld.round_id < 32) {
-                            @stage(10){
-                                stored_sync_counter_decrement.execute(hdr.pld.self_id);
-                            }
-                            @stage(11) {
+                        @stage(11){
+                            if (eg_md.round_id != BIT_8_MINUS_ONE) {
                                 hdr.msg_type.type = TYPE_ALGO_SYNC;
+                                hdr.pld.round_id = eg_md.round_id;
                             }
-                        }
-                        else {
-                            eg_mark_to_drop();
+                            else {
+                                eg_mark_to_drop();
+                            }
                         }
                     }
                     else {
@@ -376,7 +342,6 @@ control SwitchEgress(
             }
         }
 
-
         else if (eg_intr_md.egress_rid == 2) { // ack
             // @stage(1){
             //     last_transmitted_time_write_action.execute((bit<8>)eg_md.egress_port);
@@ -384,9 +349,14 @@ control SwitchEgress(
             if (hdr.msg_type.type == TYPE_ALGO_FAST){
                 hdr.msg_type.type = TYPE_ACK; // pld.tree_id has already been set up
             }
+            else {
+                hdr.msg_type.type = TYPE_ALGO_SYNC;
+                hdr.pld.sync_or_fail_ping = 1;
+                hdr.recirc_msg.setInvalid();
+            }
         }
         else if ((hdr.msg_type.type == TYPE_ALGO_FAST) || (hdr.msg_type.type == TYPE_ALGO_SLOW_RECONS)) {
-            if (eg_md.egress_port == RECIRC_EGRESS_PORT) { // recirculation packet, non blocking
+            if (eg_md.egress_port == 54) { // recirculation packet, non blocking
                 hdr.msg_type.type = TYPE_RECIRC;
             }
             else if (eg_intr_md.egress_rid == 0) { // egress_rid == 0: sending packets of the type itself; egress_rid == 1: sending TYPE_ALGO_SYNC packets. egress_rid == 2: ack
@@ -416,26 +386,23 @@ control SwitchEgress(
                         }
                     }
                     else {
-                        @stage(4){
+                        @stage(5){
                             queue_list2_add_action.execute((bit<8>)eg_md.egress_port); // in each epoch, 
                         }
                     }
-                    @stage(6){
-                        waited_algo_msg_cnt_increment.execute(hdr.pld.self_id);
+                    @stage(7){
+                        algo_store_lower_write_action.execute(eg_md.recirc_idx);
                     }
                     @stage(8){
-                        algo_store_lower_write_action.execute(eg_md.recirc_idx);
+                        waited_algo_msg_cnt_increment.execute(hdr.pld.self_id);
                     }
                     
                     eg_mark_to_drop();
                 }
             }
             else if (eg_intr_md.egress_rid == 1) { // egress_rid == 1
-                @stage(9){
+                @stage(10){
                     store_sync_round_id_write_action.execute((bit<8>)eg_md.egress_port);
-                }
-                @stage(10) {
-                    stored_sync_counter_increment.execute(hdr.pld.self_id);
                 }
                 eg_mark_to_drop();
             }
@@ -445,24 +412,6 @@ control SwitchEgress(
             //     }
             //     hdr.msg_type.type = TYPE_ACK; // pld.tree_id has already been set up
             // }
-        }
-        else if ((hdr.msg_type.type == TYPE_PING_ALGO) && (eg_intr_md.egress_rid == 16)) {
-            @stage(9){
-                hdr.pld.round_id = store_sync_round_id_read_action.execute(eg_md.peer_port);
-            }
-            bit<8> sync_counter;
-            @stage(10){
-                sync_counter = stored_sync_counter_read_action.execute(eg_md.peer_id);
-            }
-            //recirculation
-            if (sync_counter == 1){
-                hdr.msg_type.type = TYPE_ALGO_SYNC;
-                hdr.pld.self_id = eg_md.peer_id;
-                hdr.pld.round_id = 64 - hdr.pld.round_id;
-            }
-            else {
-                eg_mark_to_drop();
-            }
         }
         else if (hdr.msg_type.type == TYPE_RECIRC) {
 

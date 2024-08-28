@@ -26,8 +26,6 @@ const bit<8> TYPE_PING_ALGO = 0x07;
 #define TOTAL_SLOT 6        // the number of trees being built
 #define DEBUG_MODE
 
-#define RECIRC_EGRESS_PORT 55 // 55 for hw version and 54 for sim version
-
 #define CHANNEL_BITRATE_TS_INTERVAL (2500000) // 1us per 64-byte message = 0.2Gbps = 0.2% bandwidth
 // #define CHANNEL_BITRATE_TS_INTERVAL (2500) // 1us per 64-byte message = 0.2Gbps = 0.2% bandwidth
 #define MINUS_ONE 0xf // broadcast
@@ -349,9 +347,7 @@ struct eg_metadata_t {
     bit<8> comp_last_timestamp_flag;
     bit<32> last_timestamp;
     bit<8> egress_port;
-    bit<8> peer_port;
-    bit<8> peer_id;
-    bit<8> count_incre;
+
 }
 
 
@@ -372,9 +368,6 @@ parser SwitchEgressParser(packet_in pkt,
         eg_md.comp_last_timestamp_flag = 0;
         eg_md.last_timestamp = 0;
         eg_md.egress_port = eg_intr_md.egress_port[7:0];
-        eg_md.peer_id = 0;
-        eg_md.peer_port = 0;
-        eg_md.count_incre = 0;
 
         transition parse_ethernet;
         

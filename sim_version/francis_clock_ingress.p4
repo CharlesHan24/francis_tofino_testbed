@@ -261,7 +261,7 @@ control SwitchIngress(inout ig_headers hdr,
         }
     };
 
-    Register<bit<32>, bit<8> > (256) algo_sync_msg_cnt;
+    Register<bit<32>, bit<8> > (NUM_VIRT_SWITCH << 2) algo_sync_msg_cnt;
     RegisterAction<bit<32>, bit<8>, bit<32> > (algo_sync_msg_cnt) algo_sync_msg_cnt_update_action = {
         void apply(inout bit<32> value, out bit<32> read_value) {
             if (value + 1 == ig_md.neighbor_cnt) {
@@ -285,12 +285,10 @@ control SwitchIngress(inout ig_headers hdr,
         */
         ig_md.index = index;
         ig_md.slow_recons_root = slow_recons_root; // 0: not a root. 2~5: roots
-        ig_md.neighbor_cnt = neighbor_cnt; // how many packets expected to be received from 1) neighbors 2) itself indicating that the current node has finished sending out all the packets for this round
+        ig_md.neighbor_cnt = neighbor_cnt; // 2 * neighbor_cnt
         ig_md.depth = hdr.pld.round_id + 1;
         ig_md.algo_sync_index[4:0] = self_id[4:0];
-        ig_md.algo_sync_index[7:5] = hdr.pld.round_id[2:0];
-
-        ig_intr_tm_md.copy_to_cpu = 1; 
+        ig_md.algo_sync_index[5:5] = hdr.pld.sync_or_fail_ping[0:0];
     }
 
     action init_ping_info_action(bit<8> slow_recons_root, bit<32> neighbor_cnt, bit<32> ig_port_pow_2, bit<8> index) {
@@ -299,7 +297,6 @@ control SwitchIngress(inout ig_headers hdr,
         ig_md.slow_recons_root = slow_recons_root; // 0: not a root. 2~5: roots
         ig_md.neighbor_cnt = neighbor_cnt;
         ig_md.depth = hdr.pld.round_id + 1;
-        ig_intr_tm_md.copy_to_cpu = 1; 
     }
 
     table init_basic_info_tab {
@@ -348,7 +345,6 @@ control SwitchIngress(inout ig_headers hdr,
    //action mcast_action(MulticastGroupId_t mgrp1, MulticastGroupId_t mgrp2) {
    action mcast_action(MulticastGroupId_t mgrp1) {
         ig_intr_tm_md.mcast_grp_a = mgrp1;
-        // for monitoring
         //ig_intr_tm_md.mcast_grp_b = mgrp2;
     }
 
@@ -432,7 +428,7 @@ control SwitchIngress(inout ig_headers hdr,
         size = 1;
         default_action = last_depth_plus_round_id_action();
     }
-
+    
     Register<bit<8>, bit<8> > (1) ping_algo_counter;
     RegisterAction<bit<8>, bit<8>, bit<8> > (ping_algo_counter) ping_algo_counter_update_action = {
         void apply(inout bit<8> value, out bit<8> read_value) {
@@ -453,18 +449,20 @@ control SwitchIngress(inout ig_headers hdr,
                     ig_md.total_cnt = algo_sync_msg_cnt_update_action.execute(ig_md.algo_sync_index);
                 }
             }
-            if ((ig_md.total_cnt == 0) || (hdr.msg_type.type == TYPE_RECIRC)) {
+            if ((ig_md.total_cnt == 0) && (hdr.pld.sync_or_fail_ping == 0)) { // hdr.pld.sync_or_fail_ping == 0 means that a neighbor has successfully sent all the messages of round r - 1 and is happy to begin the next round. To ack means delivers the order that the next round is launched.
+                ig_md.is_algo_sync = 0;
+                ig_md.to_ack = 1;
+                hdr.msg_type.type = TYPE_ALGO_SLOW_RECONS;
+            }
+            else if ((ig_md.total_cnt == 0) || (hdr.msg_type.type == TYPE_RECIRC)) {
                 if (hdr.msg_type.type == TYPE_ALGO_SYNC) {
-                    @stage(2){
-                        hdr.pld.round_id = hdr.pld.round_id + 1;
-                        hdr.recirc_msg.setValid(); // to be consistent with hdr.pld.round_id <= PHASE_2 cases
-                        hdr.recirc_msg.recirc_idx = 0;
-                    }
+                    hdr.pld.sync_or_fail_ping = 0;
+                    hdr.pld.round_id = hdr.pld.round_id + 1;
+                    hdr.recirc_msg.setValid(); // to be consistent with hdr.pld.round_id <= PHASE_2 cases
+                    hdr.recirc_msg.recirc_idx = 0;
                 }
                 
-                @stage(3){
-                    phase_12_launch_next_round_tab.apply();
-                }
+                phase_12_launch_next_round_tab.apply();
                 
                 
                 if (hdr.pld.round_id <= PHASE_2 + 1) { // PHASE_1 and PHASE_2. NOTE: let one extra round in case max_depth is not fully propagated
@@ -727,8 +725,6 @@ control SwitchIngress(inout ig_headers hdr,
             }
             mark_to_drop();
         }
-
-        
         
         
 
