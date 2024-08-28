@@ -10,6 +10,7 @@
 #include <tna.p4>
 #endif
 
+// #define HW 1
 
 const bit<16> ETH_TYPE_IPV4 = 0x0800;
 const bit<8> TYPE_SYNC = 0x00; // synchronization messages and ping_for_failure messages
@@ -26,7 +27,11 @@ const bit<8> TYPE_PING_ALGO = 0x07;
 #define TOTAL_SLOT 6        // the number of trees being built
 #define DEBUG_MODE
 
+#ifdef HW
 #define RECIRC_EGRESS_PORT 55 // 55 for hw version and 54 for sim version
+#else
+#define RECIRC_EGRESS_PORT 54 // 55 for hw version and 54 for sim version
+#endif
 
 #define CHANNEL_BITRATE_TS_INTERVAL (2500000) // 1us per 64-byte message = 0.2Gbps = 0.2% bandwidth
 // #define CHANNEL_BITRATE_TS_INTERVAL (2500) // 1us per 64-byte message = 0.2Gbps = 0.2% bandwidth

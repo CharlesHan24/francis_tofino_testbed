@@ -77,7 +77,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                 [pktgen_pkt_buffer_table.make_data([gc.DataTuple('buffer', bytearray(bytes(pkt_buffer)))])])  # p[6:]))])
 
     # app 7
-    period = 1260 * SIMULATION_TIME_MULTIPLIER * 30 # 1260 ns
+    period = 1260 * SIMULATION_TIME_MULTIPLIER * 20 # 1260 ns
     data = pktgen_app_cfg_table.make_data([gc.DataTuple('timer_nanosec', period),
                                             gc.DataTuple('app_enable', bool_val=False),
                                             gc.DataTuple('pkt_len', (pktlen)),
@@ -534,7 +534,7 @@ def config_mcast_rules(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
         mcast_port_ids = []
         for i in range(fat_tree_graph.n):
             y = fat_tree_graph.edge[i][0]
-            mcast_port_ids.append(fat_tree_graph.lookup_global_id_self(i, y)) # pinging itself
+            mcast_port_ids.append(fat_tree_graph.lookup_global_id(y, i)) # pinging to itself
         rids.append(16)
         dpids.append(mcast_port_ids)
 
@@ -720,11 +720,17 @@ def config_egress_tables(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
         default_action = NoAction();
     }
     """
-    for self_id in range(fat_tree_graph.n): # TODO: not working on sim topology
-        for j, neighbor_id in enumerate(fat_tree_graph.edge[self_id]):
-            ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [fat_tree_graph.lookup_global_id(self_id, neighbor_id)], "egress_self_id_get_action", ["self_id", "peer_id", "peer_port", "count_incre"], [self_id, neighbor_id, fat_tree_graph.lookup_global_id_self(self_id, neighbor_id), (fat_tree_graph.calc_neighbors(self_id) + 1) if j == 0 else 0]) # egress
-    
+    if fat_tree_graph.mode == "hw":
+        for self_id in range(fat_tree_graph.n): # TODO: not working on sim topology
+            for j, neighbor_id in enumerate(fat_tree_graph.edge[self_id]):
+                ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [fat_tree_graph.lookup_global_id(self_id, neighbor_id)], "egress_self_id_get_action", ["self_id", "peer_id", "peer_port", "count_incre"], [self_id, neighbor_id, fat_tree_graph.lookup_global_id_self(self_id, neighbor_id), (fat_tree_graph.calc_neighbors(self_id) + 1) if j == 0 else 0]) # egress
+    else:
+        for self_id in range(fat_tree_graph.n): 
+            for j, neighbor_id in enumerate(fat_tree_graph.edge[self_id]):
+                ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [fat_tree_graph.lookup_global_id(self_id, neighbor_id)], "egress_self_id_get_action", ["self_id", "peer_id", "peer_port", "count_incre"], [self_id, neighbor_id, fat_tree_graph.lookup_global_id_self(neighbor_id, self_id), (fat_tree_graph.calc_neighbors(self_id) + 1) if j == 0 else 0]) # egress
+
     ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [RECIRC_PORT ^ 1], "NoAction", [], []) # egress
+    ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [RECIRC_PORT], "NoAction", [], []) # egress
     ctrl_manager.table_add("egress_self_id_tab", ["eg_md.egress_port"], [CPU_PORT], "NoAction", [], []) # egress
 
     return []
