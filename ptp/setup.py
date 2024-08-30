@@ -43,7 +43,7 @@ def ptp_link_fail_test(topo, n, log_announce_interval):
         for v in topo.edge[i]:
             veth = "veth{}".format(topo.lookup_global_id_self(i, v))
             list_of_veths.append(veth)
-        cmd = "ip netns exec ns{} ptp4l -2 -S ".format(i)
+        cmd = "ip netns exec ns{} chrt -f 99 ptp4l -2 -S ".format(i)
         if i == 0:
             cmd += "-f ./ptp4l_prio.conf"
         else:
@@ -57,7 +57,7 @@ def ptp_link_fail_test(topo, n, log_announce_interval):
     
     # sleeping for 15s for the network to converge
     print("Sleeping for 15s")
-    time.sleep((15 + random.random()) * log_announce_interval)
+    time.sleep((15 + random.random()) * log_announce_interval * 4)
     
     print("Link fail test. Cutting down a link between 0 and 3. Setting the loss rate to 100%")
 
@@ -69,8 +69,9 @@ def ptp_link_fail_test(topo, n, log_announce_interval):
     fout.write("{}\n".format(time.time()))
     print("time = {}".format(time.time()))
 
-    time.sleep((40 + random.random()) * log_announce_interval)
+    time.sleep((40 + random.random()) * log_announce_interval * 4)
     os.system("killall ptp4l")
+    time.sleep(1)
     os.system("killall tcpdump")
     os.system("ip netns exec ns0 ip link set dev veth0 up")
     os.system("ip netns exec ns3 ip link set dev veth9 up")
@@ -83,6 +84,10 @@ def teardown(topo, n):
             veth1 = "veth{}".format(j)
             os.system("ip netns exec ns{} ip link delete {} type veth".format(i, veth1))
         os.system("ip netns delete ns{}".format(i))
+    
+    for j in range(topo.m):
+        veth1 = "veth{}".format(j)
+        os.system("ip link delete {} type veth".format(veth1))
 
 def analysis_sample():
     pass
@@ -100,7 +105,8 @@ if __name__ == "__main__":
     topo.set_orig_mode()
     topo.construct_fattree_3_deformed()
 
-    log_announce_interval = 0.125
+   # log_announce_interval = 0.125
+    log_announce_interval = 1 / 256
 
     if args.build == 2:
         teardown(topo, n)
@@ -127,8 +133,8 @@ if __name__ == "__main__":
 
                 os.system("ip netns exec ns{} ip link set {} up".format(i, veth1))
                 os.system("ip netns exec ns{} ip link set {} up".format(v, veth2))
-                os.system("ip netns exec ns{} tc qdisc add dev {} root netem delay 0.6ms".format(i, veth1))
-                os.system("ip netns exec ns{} tc qdisc add dev {} root netem delay 0.6ms".format(v, veth2))
+                # os.system("ip netns exec ns{} tc qdisc add dev {} root netem delay 0.6ms".format(i, veth1))
+                # os.system("ip netns exec ns{} tc qdisc add dev {} root netem delay 0.6ms".format(v, veth2))
                 os.system("ip netns exec ns{} ip addr add 10.0.{}.{}/32 dev {}".format(i, i, j, veth1))
                 os.system("ip netns exec ns{} ip addr add 10.0.{}.{}/32 dev {}".format(v, i, 254 - j, veth2))
 

@@ -144,6 +144,17 @@ def search_for_completion_time(pkts, start_ts):
             return pkts[i + 1][0] - start_ts
     return 0
 
+def search_for_earliest_completion_time(pkts, start_ts):
+    if len(pkts) < 2:
+        return 0
+    # pdb.set_trace()
+    for i in range(len(pkts) - 1):
+        if cmp_pkts(pkts[i][2], pkts[-1][2]) == 1:
+            # return pkts[i][0] - start_ts
+            # return pkts[i][0] - pkts[0][0]
+            return pkts[i][0] - (pkts[0][0] + start_ts) / 2
+    return 0
+
 def build_ms_relation(list_of_pkts, list_of_macs, topo, n):
     depth = []
     for i in range(len(list_of_pkts)):
@@ -232,6 +243,7 @@ if __name__ == "__main__":
     fin = open("down_ts.txt", "r")
     start_ts = float(fin.readline().strip())
 
+    
     for i in range(42):
         pkts = rdpcap("/home/wenchen_han_22/veth{}.pcap".format(i))
     
@@ -252,11 +264,13 @@ if __name__ == "__main__":
     # log_announce_interval = 0.125
     log_announce_interval = 1 / (2 ** 13)
     fout.write("{}\n".format(log_announce_interval * 1000000))
+    pdb.set_trace()
     for i in range(n):
         conv_time_node = 0
         for v in topo.edge[i]:
             global_id = topo.lookup_global_id_self(i, v)
-            conv_time_node = max(conv_time_node, search_for_completion_time(list_of_pkts[global_id], start_ts))
+            # conv_time_node = max(conv_time_node, search_for_completion_time(list_of_pkts[global_id], start_ts))
+            conv_time_node = max(conv_time_node, search_for_earliest_completion_time(list_of_pkts[global_id], start_ts))
         print("Node {} converges in {}".format(i, conv_time_node))
         # fout.write("{} {}\n".format(conv_time_node, conv_time_node / log_announce_interval))
-        fout.write("{} {}\n".format(conv_time_node / (2 ** 10) * 1000000, conv_time_node / (2 ** 10) / log_announce_interval))
+        fout.write("{} {}\n".format(conv_time_node / (2 ** 5) * 1000000, conv_time_node / (2 ** 5) / log_announce_interval))
