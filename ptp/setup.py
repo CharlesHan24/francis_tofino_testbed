@@ -12,7 +12,7 @@ def tcpdump(topo, n):
     for i in range(n):
         for v in topo.edge[i]:
             veth = "veth{}".format(topo.lookup_global_id_self(i, v))
-            os.system("ip netns exec ns{} tcpdump -w /root/{}.pcap -i {} -U &".format(i, veth, veth))
+            os.system("ip netns exec ns{} tcpdump -w /home/wenchen_han_22/{}.pcap -i {} -U &".format(i, veth, veth))
 
 def ptp_trial(topo, n):
     os.system("ip netns exec ns0 ptp4l -f ./ptp4l_prio.conf -i veth0 -2 -S &")

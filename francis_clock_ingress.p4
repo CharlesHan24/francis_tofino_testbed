@@ -467,7 +467,7 @@ control SwitchIngress(inout ig_headers hdr,
                 }
                 
                 
-                if (hdr.pld.round_id <= PHASE_2 + 1) { // PHASE_1 and PHASE_2. NOTE: let one extra round in case max_depth is not fully propagated
+                if (hdr.pld.round_id <= PHASE_2) { // PHASE_1 and PHASE_2. NOTE: let one extra round in case max_depth is not fully propagated
                     @stage(4){
                         ig_md.last_depth = depth_read_action.execute(ig_md.recirc_tree_id);
                     }

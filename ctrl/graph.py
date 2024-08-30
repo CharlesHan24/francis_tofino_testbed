@@ -60,7 +60,7 @@ class Graph(object):
         return base + self.lookup_id(u, v)
 
     def lookup_global_id(self, u, v): # looking up the port id of its egress pipeline which, in case of the hardware mode being set, should be the peer's port id for later loopback && appearing at the peer's ingress pipeline.
-        print(self.mode)
+        # print(self.mode)
         if self.mode == "hw":
             return self.lookup_global_id_self(v, u)
         else:

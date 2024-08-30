@@ -40,7 +40,7 @@ const bit<8> TYPE_PING_ALGO = 0x07;
 
 #define PHASE_1 5 // depth <= 5
 #define PHASE_2 10 // depth <= 5
-#define PHASE_3 16 // depth = 4 (drop when round_id == 15)
+#define PHASE_3 15 // depth = 4 (drop when round_id == 15)
 #define NUM_PORTS 4 // 4 ports maximum per virtual switch
 #define NUM_VIRT_SWITCH 20 // number of virtual switches
 #define NUM_PHYSICAL_PORTS (64)

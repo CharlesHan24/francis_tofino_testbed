@@ -41,7 +41,9 @@ CPU_PORT = 64
 SIMULATION_TIME_MULTIPLIER = 40000
 
 def get_slow_treeroots(n):
-    slow_treeroots = [1, 7, 5, 12] # [1, 9, 5, 12] for failed link == (3, 10)
+    # slow_treeroots = [1, 7, 5, 12] # [1, 9, 5, 12] for failed link == (3, 10)
+    slow_treeroots = [1, 9, 6, 14]
+    # slow_treeroots = [1, 4, 6, 12]
     random.shuffle(slow_treeroots)
     return slow_treeroots
 
@@ -173,7 +175,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             )
             data_dict = next(resp)[0].to_dict()
             tri_value = data_dict["trigger_counter"]
-            if tri_value >= 45:
+            if tri_value >= 55:
                 break
             time.sleep(0.1)
 
@@ -185,6 +187,8 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             )
         
         print(time.time() - cur_time)
+        time.sleep(1)
+        os.system("killall tcpdump")
         pdb.set_trace()
 
     return [Func_wrapper(pktgen_launch_handle, pktgen_app_cfg_table, target, cfgs)], Func_wrapper(pktgen_teardown_handle_wait, pktgen_app_cfg_table, target) # # launch pktgen after cunfigurations
@@ -340,12 +344,12 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
     msg_type = 4 # TYPE_ALGO_SYNC
     recirc_idx = 0
     for self_id in range(n):
-        ctrl_manager.table_add("phase_12_launch_next_round_tab", ["hdr.msg_type.type", "hdr.recirc_msg.recirc_idx", "hdr.pld.self_id", "hdr.pld.round_id"], [msg_type, recirc_idx, self_id, [0, 11]], "phase_12_launch_next_round_action", ["to_recirc", "recirc_idx", "recirc_tree_id", "to_ack"], [1, recirc_idx, (recirc_idx + 2) * n + self_id, 0]) # 
+        ctrl_manager.table_add("phase_12_launch_next_round_tab", ["hdr.msg_type.type", "hdr.recirc_msg.recirc_idx", "hdr.pld.self_id", "hdr.pld.round_id"], [msg_type, recirc_idx, self_id, [0, 10]], "phase_12_launch_next_round_action", ["to_recirc", "recirc_idx", "recirc_tree_id", "to_ack"], [1, recirc_idx, (recirc_idx + 2) * n + self_id, 0]) # 
     
     msg_type = 3 # TYPE_PING_RECIRC
     for recirc_idx in range(3): # NOTE: 10 is the number of phase 1 + phase 2 rounds
         for self_id in range(n):
-            ctrl_manager.table_add("phase_12_launch_next_round_tab", ["hdr.msg_type.type", "hdr.recirc_msg.recirc_idx", "hdr.pld.self_id", "hdr.pld.round_id"], [msg_type, recirc_idx, self_id, [0, 11]], "phase_12_launch_next_round_action", ["to_recirc", "recirc_idx", "recirc_tree_id", "to_ack"], [1 if recirc_idx <= 1 else 0, recirc_idx + 1, (recirc_idx + 3) * n + self_id, 1 if recirc_idx == 2 else 0])
+            ctrl_manager.table_add("phase_12_launch_next_round_tab", ["hdr.msg_type.type", "hdr.recirc_msg.recirc_idx", "hdr.pld.self_id", "hdr.pld.round_id"], [msg_type, recirc_idx, self_id, [0, 10]], "phase_12_launch_next_round_action", ["to_recirc", "recirc_idx", "recirc_tree_id", "to_ack"], [1 if recirc_idx <= 1 else 0, recirc_idx + 1, (recirc_idx + 3) * n + self_id, 1 if recirc_idx == 2 else 0])
 
 
     return []

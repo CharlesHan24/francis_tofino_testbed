@@ -77,14 +77,15 @@ if __name__ == "__main__":
         graph.set_hw_mode()
 
     if args.n == 15:
-        graph.construct_fattree_3()
+        graph.construct_fattree_3_deformed()
     else:
         graph.construct_fattree_4()
     graph.spanning_tree()
 
     if args.test_phase >= 1:
         # failed_edge = (3, 10) if args.n == 15 else (4, 13)
-        failed_edge = (4, 2) if args.n == 15 else (4, 13)
+        # failed_edge = (4, 2) if args.n == 15 else (4, 13)
+        failed_edge = (0, 7) if args.n == 15 else (4, 13)
         graph.delete_edge(failed_edge[0], failed_edge[1]) # failed edge
     else:
         failed_edge = (-1, -1)

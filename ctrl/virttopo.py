@@ -4,13 +4,13 @@ import pdb
 
 
 mode = "sim"
-mode = "hw"
+# mode = "hw"
 
 topo = dict()
 topo["PortToVeth"] = []
 
 fat_tree_graph = graph.Graph(15)
-fat_tree_graph.construct_fattree_3()
+fat_tree_graph.construct_fattree_3_deformed()
 pdb.set_trace()
 total_cnt = 0
 for i in range(15):
@@ -57,5 +57,5 @@ else:
 if mode == "hw":
     json.dump(topo, open("topo_hw.json", "w"), indent=4)
 else:
-    json.dump(topo, open("topo.json", "w"), indent=4)
+    json.dump(topo, open("topo_deformed.json", "w"), indent=4)
 
