@@ -126,8 +126,7 @@ control SwitchIngress(inout ig_headers hdr,
 
     action mark_to_drop(){
         ig_intr_dprsr_md.drop_ctl = 1;
-        ig_intr_tm_md.copy_to_cpu = 1; // don't really drop it but left a copy for copy-to-cpu and digest
-        // exit;
+        exit;
     }
 
     // #define UNICAST(id) \
@@ -291,9 +290,7 @@ control SwitchIngress(inout ig_headers hdr,
         ig_md.algo_sync_index[4:0] = self_id[4:0];
         ig_md.algo_sync_index[7:5] = hdr.pld.round_id[2:0];
 
-        ig_md.ingress_timestamp = ig_intr_prsr_md.global_tstamp;
-        ig_md.old_msg_type = hdr.msg_type.type;
-        ig_intr_dprsr_md.digest_type = CPU_DIGEST;
+        ig_intr_tm_md.copy_to_cpu = 1; 
     }
 
     action init_ping_info_action(bit<8> slow_recons_root, bit<32> neighbor_cnt, bit<32> ig_port_pow_2, bit<8> index) {
@@ -302,7 +299,7 @@ control SwitchIngress(inout ig_headers hdr,
         ig_md.slow_recons_root = slow_recons_root; // 0: not a root. 2~5: roots
         ig_md.neighbor_cnt = neighbor_cnt;
         ig_md.depth = hdr.pld.round_id + 1;
-        ig_md.ingress_timestamp = ig_intr_prsr_md.global_tstamp;
+        ig_intr_tm_md.copy_to_cpu = 1; 
     }
 
     table init_basic_info_tab {
@@ -740,35 +737,17 @@ control SwitchIngress(inout ig_headers hdr,
 }
 
 
-struct cpu_digest_t {
-    bit<48> timestamp;
-    bit<8> self_id;
-    bit<8> msg_type;
-    bit<8> round_id;
-    bit<8> tree_id;
-    bit<8> ingress_port;
-}
-
 control SwitchIngressDeparser(
     packet_out pkt,
     inout ig_headers hdr,
     in ig_metadata_t ig_md,
     in ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr) {
 
-    Digest<cpu_digest_t>() cpu_digest;
+    // IngressMirror() mirror;
 
     apply {
-        if (ig_intr_md_for_dprsr.digest_type == CPU_DIGEST) {
-            cpu_digest.pack({
-                ig_md.ingress_timestamp,
-                hdr.pld.self_id,
-                ig_md.old_msg_type,
-                hdr.pld.round_id,
-                hdr.pld.tree_id,
-                ig_md.ingress_port
-            });
-        }
-
+        // mirror.apply(hdr, ig_md, ig_intr_md_for_dprsr);
+        // pkt.emit(hdr.bridge);
         pkt.emit(hdr.ethernet);
         pkt.emit(hdr.ipv4);
         pkt.emit(hdr.msg_type);

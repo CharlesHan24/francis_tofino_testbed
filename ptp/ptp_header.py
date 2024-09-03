@@ -3,6 +3,7 @@ import pdb
 import sys
 sys.path.insert(0, "../")
 from ctrl import graph
+import random
 
 
 ANNOUNCE_MESSAGE = 0xB
@@ -230,6 +231,40 @@ def build_ms_relation(list_of_pkts, list_of_macs, topo, n):
 
     return node_depth
 
+def dump_epsilon(list_of_pkts, topo, n, node_depth):
+    fout = open("epsilon.txt", "w")
+    cur_ts = -1000.0
+    conv_time_nodes = []
+    for i in range(n):
+        conv_time_node = 0
+        for v in topo.edge[i]:
+            global_id = topo.lookup_global_id_self(i, v)
+            # conv_time_node = max(conv_time_node, search_for_completion_time(list_of_pkts[global_id], start_ts))
+            conv_time_node = max(conv_time_node, search_for_earliest_completion_time(list_of_pkts[global_id], start_ts))
+        
+        conv_time_node = float(conv_time_node / (2 ** 5) * 1000000)
+        conv_time_nodes.append(conv_time_node)
+    
+    last_synchronized = [-1000 for i in range(n)]
+    while cur_ts < 2500:
+        for i in range(n):
+            if cur_ts >= conv_time_nodes[i] or cur_ts < 0:
+                if cur_ts - last_synchronized[i] >= 50:
+                    last_synchronized[i] = cur_ts
+
+        epsilon = 0
+        for i in range(n):
+            if cur_ts < conv_time_nodes[i]:
+                epsilon = max(epsilon, 20 + 0.2 * (cur_ts - last_synchronized[i]))
+            else:
+                epsilon = max(epsilon, node_depth[i] * 5 + 0.2 * (cur_ts - last_synchronized[i]))
+
+        
+        fout.write("{} {}\n".format(cur_ts, epsilon))
+        cur_ts += 2.4 * (random.random() * 0.1 + 0.95)
+
+
+
 
 def get_mac_addresses(topo):
     addresses = []
@@ -240,12 +275,14 @@ def get_mac_addresses(topo):
 if __name__ == "__main__":
     list_of_pkts = []
 
-    fin = open("down_ts.txt", "r")
+    root_dir = "/home/wenchen_han_22/results_hardcases/tcpdump_ptp/"
+
+    fin = open(root_dir + "down_ts.txt", "r")
     start_ts = float(fin.readline().strip())
 
     
     for i in range(42):
-        pkts = rdpcap("/home/wenchen_han_22/veth{}.pcap".format(i))
+        pkts = rdpcap(root_dir + "veth{}.pcap".format(i))
     
         pkts = parse_packets(pkts, start_ts=start_ts)
         list_of_pkts.append(pkts)
@@ -274,3 +311,5 @@ if __name__ == "__main__":
         print("Node {} converges in {}".format(i, conv_time_node))
         # fout.write("{} {}\n".format(conv_time_node, conv_time_node / log_announce_interval))
         fout.write("{} {}\n".format(conv_time_node / (2 ** 5) * 1000000, conv_time_node / (2 ** 5) / log_announce_interval))
+
+    dump_epsilon(list_of_pkts, topo, n, node_depth)

@@ -45,8 +45,6 @@ const bit<8> TYPE_PING_ALGO = 0x07;
 #define NUM_VIRT_SWITCH 20 // number of virtual switches
 #define NUM_PHYSICAL_PORTS (64)
 
-#define CPU_DIGEST 1
-
 typedef bit<48> mac_addr_t;
 typedef bit<32> ipv4_addr_t;
 
@@ -211,9 +209,6 @@ struct ig_metadata_t {
     bit<8> last_depth_plus_round_id;
     bit<8> recirc_tree_id;
     bit<8> algo_sync_index;
-    bit<48> ingress_timestamp;
-    bit<8> ingress_port;
-    bit<8> old_msg_type;
 }
 
 
@@ -266,10 +261,6 @@ parser SwitchIngressParser(
         ig_md.is_algo_sync = 0;
         ig_md.recirc_tree_id = 0;
         ig_md.algo_sync_index = 0;
-        ig_md.ingress_timestamp = 0;
-        ig_md.ingress_port = ig_intr_md.ingress_port[7:0];
-        ig_md.old_msg_type = 0;
-
 
         transition parse_meta;
     }
@@ -366,7 +357,6 @@ struct eg_metadata_t {
     bit<8> peer_port;
     bit<8> peer_id;
     bit<8> count_incre;
-    
 }
 
 

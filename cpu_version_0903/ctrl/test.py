@@ -164,7 +164,7 @@ if __name__ == "__main__":
         if pkt[2].type == TYPE_ALGO_FAST:
             print(pkt[0] - mn_time)
             mx_time_fast = max(mx_time_fast, pkt[0])
-    
+    pdb.set_trace()
     print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time, mx_time_fast - mn_time))
 
     # for pkt in captured_packets:
