@@ -52,6 +52,25 @@ class Ctrl_Manager(object):
         self.mc = mc_client_module.Client(TMultiplexedProtocol.TMultiplexedProtocol(bprotocol, "mc"))
         self.mc_sess_hdl = self.mc.mc_create_session()
 
+    def retrieve_digest_msg(self):
+        msgs = []
+        while True:
+            try:
+                new_msg_pack = self.GRPC_CLIENT.digest_get()
+            except:
+                break
+            if new_msg_pack == None:
+                break
+            
+            
+            for new_msg in new_msg_pack.data:
+                msg = []
+                for dfield in new_msg.fields:
+                    msg.append(int.from_bytes(dfield.stream, byteorder='big'))
+                msgs.append(msg)
+        return msgs
+
+
     def table_add(self, table_name, match_key_names_list, match_key_values_list, action_name, action_data_names_list, action_data_values_list, is_ternary=False, ternary_mask_list=None):
         # simply a wrapper
         t = self.bfrt_info.table_get(table_name)

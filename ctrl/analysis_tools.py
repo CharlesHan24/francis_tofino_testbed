@@ -36,6 +36,29 @@ def extract_pkts(raw_pkts):
 def extract_pkt(raw_pkt):
     return FRANCIS(raw(raw_pkt["IP"].payload))
 
+
+
+"""
+struct cpu_digest_t {
+    bit<48> timestamp;
+    bit<8> self_id;
+    bit<8> msg_type;
+    bit<8> round_id;
+    bit<8> tree_id;
+    bit<8> ingress_port;
+}
+"""
+class digest_pkts(object):
+    def __init__(self, ts, self_id, msg_type, round_id, tree_id, ingress_port):
+        self.ts = ts
+        self.self_id = self_id
+        self.msg_type = msg_type
+        self.round_id = round_id
+        self.tree_id = tree_id
+        self.ingress_port = ingress_port
+    
+
+
 if __name__ == "__main__":
     import pdb
     pkts = rdpcap("../../sender.pcap")

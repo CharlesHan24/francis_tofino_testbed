@@ -3,8 +3,8 @@ import graph
 import pdb
 
 
-mode = "sim"
-# mode = "hw"
+# mode = "sim"
+mode = "hw"
 
 topo = dict()
 topo["PortToVeth"] = []
@@ -55,7 +55,7 @@ else:
     })
 
 if mode == "hw":
-    json.dump(topo, open("topo_hw.json", "w"), indent=4)
+    json.dump(topo, open("topo_hw_deformed.json", "w"), indent=4)
 else:
     json.dump(topo, open("topo_deformed.json", "w"), indent=4)
 

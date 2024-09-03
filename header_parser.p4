@@ -10,7 +10,7 @@
 #include <tna.p4>
 #endif
 
-// #define HW 1
+#define HW 1
 
 const bit<16> ETH_TYPE_IPV4 = 0x0800;
 const bit<8> TYPE_SYNC = 0x00; // synchronization messages and ping_for_failure messages

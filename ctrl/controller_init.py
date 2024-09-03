@@ -79,7 +79,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                 [pktgen_pkt_buffer_table.make_data([gc.DataTuple('buffer', bytearray(bytes(pkt_buffer)))])])  # p[6:]))])
 
     # app 7
-    period = 1260 * SIMULATION_TIME_MULTIPLIER * 20 # 1260 ns
+    period = 2520 * 10 * SIMULATION_TIME_MULTIPLIER # 1260 ns
     data = pktgen_app_cfg_table.make_data([gc.DataTuple('timer_nanosec', period),
                                             gc.DataTuple('app_enable', bool_val=False),
                                             gc.DataTuple('pkt_len', (pktlen)),
@@ -144,10 +144,12 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                 [pktgen_app_cfg_table.make_data([gc.DataTuple('app_enable', bool_val=True)],
                                                 'trigger_timer_periodic')]
             )
+        print(time.time())
 
     def pktgen_teardown_handle_wait(pktgen_app_cfg_table, target):
         cur_time = time.time()
-        while time.time() - cur_time < 100: # wait until 10s or until the trigger_counter reaches 100
+        print(cur_time)
+        while time.time() - cur_time < 100: # wait until 100s or until the trigger_counter reaches 100
             resp = pktgen_app_cfg_table.entry_get(
                 target,
                 [pktgen_app_cfg_table.make_key([gc.KeyTuple('app_id', 2)])],

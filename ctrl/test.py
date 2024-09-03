@@ -16,8 +16,9 @@ import pdb
 import os
 import time
 import random
-from analysis_tools import extract_pkts, extract_pkt
+from analysis_tools import extract_pkts, extract_pkt, digest_pkts
 from controller_init import RECIRC_PORT
+import pickle
 
 
 def sniffing(port, cbs, teardown_hdls):
@@ -49,6 +50,15 @@ def tcpdump_sniffing(port, skip_running, cbs, teardown_hdls):
             all_pkts.append([float(captured_packet.time), veth, extract_pkt(captured_packet)])
     all_pkts = sorted(all_pkts, key=lambda x: x[0])
     return all_pkts
+
+def digest_sniffing(ctrl_manager, skip_running, cbs, teardown_hdls):
+    cbs()
+    teardown_hdls()
+
+    msgs = ctrl_manager.retrieve_digest_msg()
+    return msgs
+
+
 
 def nosniffing(port, cbs, teardown_hdls):
     cbs()
@@ -149,25 +159,69 @@ if __name__ == "__main__":
     else:
         func = None
         teardown_hdls = None
-    captured_packets = tcpdump_sniffing(24, args.skip_running, cbs=func, teardown_hdls=teardown_hdls)
+    # captured_packets = tcpdump_sniffing(24, args.skip_running, cbs=func, teardown_hdls=teardown_hdls)
     #    captured_packets = extract_pkts(captured_packets)
     
     
     
+    if 0 == 1:
+        mn_time = captured_packets[0][0]
+        mx_time_recons = 0
+        mx_time_fast = 0
+        for pkt in captured_packets:
+            if pkt[2].type == TYPE_ALGO_SLOW_RECONS:
+                mx_time_recons = max(mx_time_recons, pkt[0])
+            if pkt[2].type == TYPE_ALGO_FAST:
+                print(pkt[0] - mn_time)
+                mx_time_fast = max(mx_time_fast, pkt[0])
+        
+        print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time, mx_time_fast - mn_time))
 
-    mn_time = captured_packets[0][0]
+        # for pkt in captured_packets:
+        #     print(pkt[0], pkt[1], pkt[2])
+
+        print("Program finished.")
+    
+    if args.skip_running == 0:
+        captured_packets = digest_sniffing(ctrl_manager, args.skip_running, cbs=func, teardown_hdls=teardown_hdls)
+        pdb.set_trace()
+        print("start analyzing packets...")
+        print(len(captured_packets))
+
+        for i in range(len(captured_packets)):
+            captured_packets[i] = digest_pkts(captured_packets[i][0], captured_packets[i][1], captured_packets[i][2], captured_packets[i][3], captured_packets[i][4], captured_packets[i][5])
+
+        with open("captured_packets.dat", "wb") as f:
+            pickle.dump(captured_packets, f)
+    else:
+        with open("captured_packets.dat", "rb") as f:
+            captured_packets = pickle.load(f)
+
     mx_time_recons = 0
     mx_time_fast = 0
+
+    mn_time = captured_packets[0].ts
+    mx_time_recons = 0
+    mx_time_fast = 0
+    pdb.set_trace()
     for pkt in captured_packets:
-        if pkt[2].type == TYPE_ALGO_SLOW_RECONS:
-            mx_time_recons = max(mx_time_recons, pkt[0])
-        if pkt[2].type == TYPE_ALGO_FAST:
-            print(pkt[0] - mn_time)
-            mx_time_fast = max(mx_time_fast, pkt[0])
+        if pkt.msg_type == TYPE_ALGO_SLOW_RECONS:
+            mx_time_recons = max(mx_time_recons, pkt.ts)
+        if pkt.msg_type == TYPE_ALGO_FAST:
+            print(pkt.ts - mn_time)
+            mx_time_fast = max(mx_time_fast, pkt.ts)
+    
+    # somehow the timestamp captured isn't the real time, as the total elapsed in python is even shorter than the total time passed acoording to the packet ts.
+    # divide the ts by a scalar seems to solve the problem.
+    scalar = (captured_packets[10].ts-captured_packets[0].ts) / 2 / (10**9)
+    mx_time_recons /= scalar
+    mx_time_fast /= scalar
+    mn_time /= scalar
+
+    # convert to s
+    mx_time_recons /= 10**9
+    mx_time_fast /= 10**9
+    mn_time /= 10**9
+
     
     print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time, mx_time_fast - mn_time))
-
-    # for pkt in captured_packets:
-    #     print(pkt[0], pkt[1], pkt[2])
-
-    print("Program finished.")

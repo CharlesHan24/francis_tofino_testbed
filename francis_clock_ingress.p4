@@ -291,7 +291,7 @@ control SwitchIngress(inout ig_headers hdr,
         ig_md.algo_sync_index[4:0] = self_id[4:0];
         ig_md.algo_sync_index[7:5] = hdr.pld.round_id[2:0];
 
-        ig_md.ingress_timestamp = ig_intr_prsr_md.global_tstamp;
+        ig_md.ingress_timestamp =  ig_intr_prsr_md.global_tstamp; // ig_intr_md.ingress_mac_tstamp;  // ig_intr_prsr_md.global_tstamp;
         ig_md.old_msg_type = hdr.msg_type.type;
         ig_intr_dprsr_md.digest_type = CPU_DIGEST;
     }
