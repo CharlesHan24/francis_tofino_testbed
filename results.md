@@ -9,3 +9,11 @@ time elapsed for slow_recons = 42.56364989280701, fast = 4.44517707824707
 Tested on a more complicated/difficult test case, failing a link that causes the deoth of the fast recovery tree == maximum distance between any two pair of switches to be 7; also triggers algo_ping message since the failed link would lead to a whole subtree to be failed. This is actually an adverserial case for PTP where it converges slow enough.
 10Mbps time elapsed for slow recons = 47.374167919158936, fast = 4.394640922546387
 100Mbps time elapsed for slow_recons = 47.42334198951721, fast = 4.4679529666900635
+
+130.281, 2326.880 50.13428220806297 10Mb real
+130.377, 341.459 47.85146005835243 100Mb real
+151.253 325.019 46.27463140875069 100Mb sim
+150.801 2122.555 55.60852957229623 10Mb sim
+
+1866.5293518332555 402.53537189109363 LinuxPTP real
+1842.276 404.9226458857152 PTP sim

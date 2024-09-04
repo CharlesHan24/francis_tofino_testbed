@@ -233,7 +233,7 @@ def build_ms_relation(list_of_pkts, list_of_macs, topo, n):
 
 def dump_epsilon(list_of_pkts, topo, n, node_depth):
     fout = open("epsilon.txt", "w")
-    cur_ts = -1000.0
+    cur_ts = -500.0
     conv_time_nodes = []
     for i in range(n):
         conv_time_node = 0
@@ -260,7 +260,7 @@ def dump_epsilon(list_of_pkts, topo, n, node_depth):
                 epsilon = max(epsilon, node_depth[i] * 5 + 0.2 * (cur_ts - last_synchronized[i]))
 
         
-        fout.write("{} {}\n".format(cur_ts, epsilon))
+        fout.write("{} {}\n".format(cur_ts * 1000, epsilon))
         cur_ts += 2.4 * (random.random() * 0.1 + 0.95)
 
 
