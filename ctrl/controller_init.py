@@ -86,7 +86,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                                             gc.DataTuple('pkt_buffer_offset', buff_offset),
                                             gc.DataTuple('pipe_local_source_port', src_port),
                                             gc.DataTuple('increment_source_port', bool_val=False),
-                                            gc.DataTuple('batch_count_cfg', batch_count - 1),
+                                            gc.DataTuple('batch_count_cfg', 1 - 1),
                                             gc.DataTuple('packets_per_batch_cfg', 1 - 1), # multicasted to all ports for all logical switches
                                             gc.DataTuple('ibg', 1),
                                             gc.DataTuple('ibg_jitter', 0),
@@ -111,7 +111,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                                             gc.DataTuple('pkt_buffer_offset', buff_offset),
                                             gc.DataTuple('pipe_local_source_port', src_port),
                                             gc.DataTuple('increment_source_port', bool_val=False),
-                                            gc.DataTuple('batch_count_cfg', 1 - 1),
+                                            gc.DataTuple('batch_count_cfg', batch_count - 1),
                                             gc.DataTuple('packets_per_batch_cfg', packets_per_batch - 1),
                                             # gc.DataTuple('packets_per_batch_cfg', 0), # debug
                                             gc.DataTuple('ibg', 1),
