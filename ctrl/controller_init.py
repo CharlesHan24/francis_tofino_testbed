@@ -337,8 +337,6 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
                 digest_type = 0
                 if msg_type == 5 or msg_type == 6:
                     digest_type = 1
-                if msg_type == 0 and (self_id == 3 or self_id == 5 or self_id == 7):
-                    digest_type = 1
 
                 for k in range(ntrees):
                     ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, k, fake_redund_self_id_match], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index", "digest_type"], [self_id, cur_root_map[self_id], fat_tree_graph.calc_neighbors(self_id) + 1, 1 << port_delta, k * n + self_id, digest_type], is_ternary=True, ternary_mask_list=[-1, 255, -1, 0])
