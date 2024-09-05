@@ -38,7 +38,7 @@ MINUS_ONE_PORT = 0xf
 NUM_PHYSICAL_PORTS = 64
 CPU_PORT = 64
 
-SIMULATION_TIME_MULTIPLIER = 4
+SIMULATION_TIME_MULTIPLIER = 1
 
 def get_slow_treeroots(n):
     # slow_treeroots = [1, 7, 5, 12] # [1, 9, 5, 12] for failed link == (3, 10)
