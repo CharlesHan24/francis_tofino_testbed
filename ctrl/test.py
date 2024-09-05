@@ -231,7 +231,7 @@ if __name__ == "__main__":
         if pkt.msg_type == TYPE_ALGO_SLOW_RECONS:
             mx_time_recons = max(mx_time_recons, pkt.ts)
         if pkt.msg_type == TYPE_ALGO_FAST:
-            print(pkt.ts - mn_time)
+            # print(pkt.ts - mn_time)
             mx_time_fast = max(mx_time_fast, pkt.ts)
     
     # somehow the timestamp captured isn't the real time, as the total elapsed in python is even shorter than the total time passed acoording to the packet ts.
