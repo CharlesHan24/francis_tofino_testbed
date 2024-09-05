@@ -159,7 +159,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             tri_value = data_dict["trigger_counter"]
             if tri_value >= 5:
                 break
-            time.sleep(0.001)
+            # time.sleep(0.001)
         print(time.time() - cur_time)
 
         pktgen_app_cfg_table.entry_mod(
@@ -179,7 +179,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             tri_value = data_dict["trigger_counter"]
             if tri_value >= 55:
                 break
-            time.sleep(0.001)
+            # time.sleep(0.001)
 
         pktgen_app_cfg_table.entry_mod(
                 target,
