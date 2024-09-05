@@ -116,7 +116,7 @@ if __name__ == "__main__":
         if args.target == "sim":
             for i in range(graph.m):
                 os.system("tc qdisc add dev veth{} root netem delay {}ms".format(i, 20))
-
+        
         for i in range(graph.m):
             port_up(ctrl_manager, i, loopback_mode)
         
