@@ -1,0 +1,4 @@
+ucli
+port-add -/- 10G NONE
+exit
+
