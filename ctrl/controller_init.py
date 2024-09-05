@@ -752,7 +752,7 @@ def port_up(ctrl_manager: Ctrl_Manager, port, loopback_mode):
     port_table = ctrl_manager.bfrt_info.table_get("$PORT")
     target = gc.Target(device_id=0, pipe_id=0xffff)
     
-    port_table.entry_add(
+    port_table.entry_mod(
         target,
         [port_table.make_key([gc.KeyTuple("$DEV_PORT", port)])],
         [port_table.make_data([gc.DataTuple("$SPEED", str_val=speed),
