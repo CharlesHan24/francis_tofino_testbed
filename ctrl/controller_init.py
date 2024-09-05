@@ -149,16 +149,16 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
     def pktgen_teardown_handle_wait(pktgen_app_cfg_table, target):
         cur_time = time.time()
         print(cur_time)
-        while time.time() - cur_time < 100: # wait until 100s or until the trigger_counter reaches 100
-            resp = pktgen_app_cfg_table.entry_get(
-                target,
-                [pktgen_app_cfg_table.make_key([gc.KeyTuple('app_id', 2)])],
-                #{"from_hw": True}
-            )
-            data_dict = next(resp)[0].to_dict()
-            tri_value = data_dict["trigger_counter"]
-            if tri_value >= 5:
-                break
+        # while time.time() - cur_time < 100: # wait until 100s or until the trigger_counter reaches 100
+        #     resp = pktgen_app_cfg_table.entry_get(
+        #         target,
+        #         [pktgen_app_cfg_table.make_key([gc.KeyTuple('app_id', 2)])],
+        #         #{"from_hw": True}
+        #     )
+        #     data_dict = next(resp)[0].to_dict()
+        #     tri_value = data_dict["trigger_counter"]
+        #     if tri_value >= 5:
+        #         break
             # time.sleep(0.001)
         print(time.time() - cur_time)
 
