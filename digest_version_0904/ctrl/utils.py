@@ -4,7 +4,7 @@ from scapy.all import *
 from thrift.protocol import TBinaryProtocol, TMultiplexedProtocol
 from thrift.transport import TSocket, TTransport
 import struct
-verstr="3.5"
+verstr="3.9"
 sys.path.append(os.path.expandvars('$SDE/install/lib/python'+verstr+'/site-packages/tofino/'))
 sys.path.append(os.path.expandvars('$SDE/install/lib/python'+verstr+'/site-packages/tofino/bfrt_grpc/'))
 
