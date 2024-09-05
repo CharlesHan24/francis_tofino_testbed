@@ -38,7 +38,7 @@ MINUS_ONE_PORT = 0xf
 NUM_PHYSICAL_PORTS = 64
 CPU_PORT = 64
 
-SIMULATION_TIME_MULTIPLIER = 40000
+SIMULATION_TIME_MULTIPLIER = 400
 
 def get_slow_treeroots(n):
     # slow_treeroots = [1, 7, 5, 12] # [1, 9, 5, 12] for failed link == (3, 10)
@@ -79,7 +79,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                 [pktgen_pkt_buffer_table.make_data([gc.DataTuple('buffer', bytearray(bytes(pkt_buffer)))])])  # p[6:]))])
 
     # app 7
-    period = 2520 * 10 * SIMULATION_TIME_MULTIPLIER # 1260 ns
+    period = 51200 * SIMULATION_TIME_MULTIPLIER # 1260 ns
     data = pktgen_app_cfg_table.make_data([gc.DataTuple('timer_nanosec', period),
                                             gc.DataTuple('app_enable', bool_val=False),
                                             gc.DataTuple('pkt_len', (pktlen)),
@@ -159,7 +159,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             tri_value = data_dict["trigger_counter"]
             if tri_value >= 5:
                 break
-            time.sleep(0.1)
+            time.sleep(0.001)
         print(time.time() - cur_time)
 
         pktgen_app_cfg_table.entry_mod(
@@ -179,7 +179,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
             tri_value = data_dict["trigger_counter"]
             if tri_value >= 55:
                 break
-            time.sleep(0.1)
+            time.sleep(0.001)
 
         pktgen_app_cfg_table.entry_mod(
                 target,
