@@ -95,7 +95,13 @@ if __name__ == "__main__":
     parser.add_argument("--test_phase", type=int, default=0) # phase 0: testing the PTP without failing links. phase 1: + fast recovery. phase 2: + slow recovery.
     parser.add_argument("--skip_running", type=int, default=0)
     parser.add_argument("--bandwidth", type=int, default=10)
+    parser.add_argument("--monitor_node", type=str)
+
     args = parser.parse_args()
+
+    monitor_nodes = []
+    for node in args.monitor_node.split(","):
+        monitor_nodes.append(int(node))
 
     graph = Graph(args.n)
     if args.target == "hw":
@@ -152,7 +158,7 @@ if __name__ == "__main__":
         hdls = config_init_tree(ctrl_manager, graph)
         concat(cb_hdls, hdls)
 
-        hdls = config_ma_tables(ctrl_manager, slow_treeroots, graph)
+        hdls = config_ma_tables(ctrl_manager, slow_treeroots, graph, monitor_nodes)
         concat(cb_hdls, hdls)
 
         hdls = config_other_register_tables(ctrl_manager, slow_treeroots, failed_edge[1], graph)

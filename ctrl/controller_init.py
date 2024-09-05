@@ -281,7 +281,7 @@ def config_other_register_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fai
 
     return []
 
-def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph: Graph):
+def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph: Graph, monitor_nodes):
     
     bfrt_info = ctrl_manager.bfrt_info
     target = gc.Target(device_id=0, pipe_id=0xffff)
@@ -337,7 +337,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
                 digest_type = 0
                 if msg_type == 5:
                     digest_type = 1
-                elif msg_type == 6 and self_id == 0:
+                elif msg_type == 6 and self_id in monitor_nodes:
                     digest_type = 1
 
                 for k in range(ntrees):
