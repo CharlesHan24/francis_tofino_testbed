@@ -335,7 +335,9 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
                 #     port = 48 + (self_id - 12) * 2 + port_delta
 
                 digest_type = 0
-                if msg_type == 5 or msg_type == 6:
+                if msg_type == 5:
+                    digest_type = 1
+                elif msg_type == 6 and self_id == 0:
                     digest_type = 1
 
                 for k in range(ntrees):

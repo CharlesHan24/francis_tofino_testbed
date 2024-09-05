@@ -57,7 +57,8 @@ def digest_sniffing(ctrl_manager, skip_running, cbs, teardown_hdls):
     ts = time.time()
     while True:
         msgs = ctrl_manager.retrieve_digest_msg()
-        all_msgs.append(msgs)
+        if msgs != []:
+            all_msgs.append(msgs)
         if time.time() - ts > 0.1:
             break
 
