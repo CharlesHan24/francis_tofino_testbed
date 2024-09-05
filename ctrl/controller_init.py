@@ -79,7 +79,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                 [pktgen_pkt_buffer_table.make_data([gc.DataTuple('buffer', bytearray(bytes(pkt_buffer)))])])  # p[6:]))])
 
     # app 7
-    period = 51200 * SIMULATION_TIME_MULTIPLIER # 1260 ns
+    period = 51200 * SIMULATION_TIME_MULTIPLIER // (cfgs.bandwidth // 10) # 1260 ns
     data = pktgen_app_cfg_table.make_data([gc.DataTuple('timer_nanosec', period),
                                             gc.DataTuple('app_enable', bool_val=False),
                                             gc.DataTuple('pkt_len', (pktlen)),

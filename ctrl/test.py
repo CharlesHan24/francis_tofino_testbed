@@ -80,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, choices=[20, 15], default=15)
     parser.add_argument("--test_phase", type=int, default=0) # phase 0: testing the PTP without failing links. phase 1: + fast recovery. phase 2: + slow recovery.
     parser.add_argument("--skip_running", type=int, default=0)
+    parser.add_argument("--bandwidth", type=int, default=10)
     args = parser.parse_args()
 
     graph = Graph(args.n)
@@ -191,10 +192,10 @@ if __name__ == "__main__":
         for i in range(len(captured_packets)):
             captured_packets[i] = digest_pkts(captured_packets[i][0], captured_packets[i][1], captured_packets[i][2], captured_packets[i][3], captured_packets[i][4], captured_packets[i][5])
 
-        with open("captured_packets.dat", "wb") as f:
+        with open("captured_packets_{}.dat".format(args.bandwidth), "wb") as f:
             pickle.dump(captured_packets, f)
     else:
-        with open("captured_packets.dat", "rb") as f:
+        with open("captured_packets_{}.dat".format(args.bandwidth), "rb") as f:
             captured_packets = pickle.load(f)
 
     mx_time_recons = 0
