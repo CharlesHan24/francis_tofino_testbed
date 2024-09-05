@@ -213,7 +213,7 @@ if __name__ == "__main__":
     
     # somehow the timestamp captured isn't the real time, as the total elapsed in python is even shorter than the total time passed acoording to the packet ts.
     # divide the ts by a scalar seems to solve the problem.
-    scalar = (captured_packets[10].ts-captured_packets[0].ts) / 2 / (10**9)
+    scalar = 1 # (captured_packets[10].ts-captured_packets[0].ts) / 2 / (10**9)
     mx_time_recons /= scalar
     mx_time_fast /= scalar
     mn_time /= scalar
