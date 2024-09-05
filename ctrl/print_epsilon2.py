@@ -52,7 +52,12 @@ for i in range(n):
             first_algo_sync_time[i] = (pkt[0] - all_pkts[0][0][0] - 4) / 2 * 50000 + (100000 - start_ts)
             break
 
-print(first_algo_sync_time)
+print(first_algo_sync_time, "123")
+import numpy as np
+print(list((np.array(first_algo_sync_time) - 100000) * 4 + 100000))
+y = (np.array(first_algo_sync_time) - 100000) * 4 + 100000
+print(y.var() ** 0.5)
+
 
 max_cons_time = []
 for i in range(n):
@@ -64,6 +69,10 @@ for i in range(n):
             max_cons_time[i] = (pkt[0] - all_pkts[0][0][0] - 4) / 1.008 * 5120 + (100000 - start_ts)
             break
 print(max_cons_time)
+print(list(np.array(max_cons_time) + 25000))
+y = np.array(max_cons_time) + 25000
+print(y.var() ** 0.5)
+
 
 last_sync_time = [-1000000 for i in range(n)]
 cur_ts = -500000
