@@ -49,7 +49,6 @@ def get_slow_treeroots(n):
     return slow_treeroots
 
 def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parsed arguments
-    pdb.set_trace()
     bfrt_info = ctrl_manager.bfrt_info
 
     src_port = PKTGEN_PORT # source port for the packet generator is 6 for the Tofino 2 model
@@ -192,7 +191,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
         print(time.time() - cur_time)
         time.sleep(1)
         os.system("killall tcpdump")
-        pdb.set_trace()
+
 
     return [Func_wrapper(pktgen_launch_handle, pktgen_app_cfg_table, target, cfgs)], Func_wrapper(pktgen_teardown_handle_wait, pktgen_app_cfg_table, target) # # launch pktgen after cunfigurations
 

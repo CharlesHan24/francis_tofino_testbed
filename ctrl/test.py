@@ -68,7 +68,7 @@ def digest_sniffing(ctrl_manager, skip_running, cbs, teardown_hdls):
         for msg in all_msg:
             msgs.append(msg)
 
-    pdb.set_trace()
+    # pdb.set_trace()
     
     return msgs
 
@@ -206,23 +206,23 @@ if __name__ == "__main__":
     
     if args.skip_running == 0:
         captured_packets = digest_sniffing(ctrl_manager, args.skip_running, cbs=func, teardown_hdls=teardown_hdls)
-        pdb.set_trace()
+        # pdb.set_trace()
         print("start analyzing packets...")
         print(len(captured_packets))
 
         for i in range(len(captured_packets)):
             captured_packets[i] = digest_pkts(captured_packets[i][0], captured_packets[i][1], captured_packets[i][2], captured_packets[i][3], captured_packets[i][4], captured_packets[i][5])
 
-        with open("captured_packets_{}.dat".format(args.bandwidth), "wb") as f:
+        with open("captured_packets_{}_{}.dat".format(args.bandwidth, args.trial), "wb") as f:
             pickle.dump(captured_packets, f)
     else:
-        with open("captured_packets_{}.dat".format(args.bandwidth), "rb") as f:
+        with open("captured_packets_{}_{}.dat".format(args.bandwidth, args.trial), "rb") as f:
             captured_packets = pickle.load(f)
 
     mx_time_recons = 0
     mx_time_fast = 0
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
     mn_time = captured_packets[0].ts
     mx_time_recons = 0
