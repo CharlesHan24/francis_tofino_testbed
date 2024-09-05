@@ -52,7 +52,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
     bfrt_info = ctrl_manager.bfrt_info
 
     src_port = PKTGEN_PORT # source port for the packet generator is 6 for the Tofino 2 model
-    batch_count = 1
+    batch_count = 3 # 3 batches
     n = fat_tree_graph.n
     packets_per_batch = n # n switches
     
@@ -121,8 +121,8 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
                                             gc.DataTuple('batch_counter', 0),
                                             gc.DataTuple('pkt_counter', 0),
                                             gc.DataTuple('trigger_counter', 0)],
-                                            # "trigger_timer_one_shot")
-                                            'trigger_timer_periodic')
+                                            "trigger_timer_one_shot")
+                                            # 'trigger_timer_periodic')
 
     pktgen_app_cfg_table.entry_mod(
                 target,

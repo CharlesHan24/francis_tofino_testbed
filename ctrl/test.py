@@ -225,4 +225,4 @@ if __name__ == "__main__":
     mn_time /= 10**9
 
     
-    print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time, mx_time_fast - mn_time))
+    print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time + 1e-4, mx_time_fast - mn_time + 1e-4))
