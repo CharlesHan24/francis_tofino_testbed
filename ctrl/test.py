@@ -204,7 +204,7 @@ if __name__ == "__main__":
     mn_time = captured_packets[0].ts
     mx_time_recons = 0
     mx_time_fast = 0
-    pdb.set_trace()
+    
     for pkt in captured_packets:
         if pkt.msg_type == TYPE_ALGO_SLOW_RECONS:
             mx_time_recons = max(mx_time_recons, pkt.ts)
@@ -225,4 +225,4 @@ if __name__ == "__main__":
     mn_time /= 10**9
 
     
-    print("time elapsed for slow_recons = {}, fast = {}".format(mx_time_recons - mn_time + 1e-4, mx_time_fast - mn_time + 1e-4))
+    print("time elapsed for slow_recons = {}, fast = {}".format((mx_time_recons - mn_time + 5e-5) * 1000000, (mx_time_fast - mn_time + 5e-5) * 1000000))
