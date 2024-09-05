@@ -88,7 +88,7 @@ def start_cb(cb_hdls):# Starting the program by enabling pktgen. When pktgen sto
 
 if __name__ == "__main__":
     
-    random.seed(0)
+    
     parser = argparse.ArgumentParser(description='controller')
     parser.add_argument("--target", type=str, choices=["hw", "sim"], default="sim")
     parser.add_argument("--n", type=int, choices=[20, 15], default=15)
@@ -97,8 +97,10 @@ if __name__ == "__main__":
     parser.add_argument("--bandwidth", type=int, default=10)
     parser.add_argument("--monitor_node", type=str)
     parser.add_argument("--trial", type=int, default=0)
+    
 
     args = parser.parse_args()
+    random.seed(args.trial)
 
     monitor_nodes = []
     for node in args.monitor_node.split(","):
