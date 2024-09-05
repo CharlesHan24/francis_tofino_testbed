@@ -218,14 +218,14 @@ def config_init_tree(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
     # setup the treeson register
     ctrl_manager.reset_register("treeson_port")
     for i in range(n): # for the 0th tree
-        ctrl_manager.insert_entry("treeson_port", i, "f1", children[i])
+        ctrl_manager.insert_entry("treeson_port", i, "SwitchIngress.treeson_port.f1", children[i])
 
     # setup the father register
     ctrl_manager.reset_register("father")
     for i in range(n):
-        ctrl_manager.insert_entry("father", i, "f1", parent[i])
+        ctrl_manager.insert_entry("father", i, "SwitchIngress.father.f1", parent[i])
     for i in range(n, n * 6):
-        ctrl_manager.insert_entry("father", i, "f1", -1)
+        ctrl_manager.insert_entry("father", i, "SwitchIngress.father.f1", -1)
 
     # configure the treeson_port_read_newtree_tab
     for i in range(6):
@@ -235,7 +235,7 @@ def config_init_tree(ctrl_manager: Ctrl_Manager, fat_tree_graph: Graph):
     # configure comb_ignore_is_root
     ctrl_manager.reset_register("comb_ignore_is_root")
     for i in range(n): # for the 0th tree; for the j >= 1th tree, comb_ignore_is_root is 0
-        ctrl_manager.insert_entry("comb_ignore_is_root", i, "f1", 3 if i == 0 else 1)
+        ctrl_manager.insert_entry("comb_ignore_is_root", i, "SwitchIngress.comb_ignore_is_root.f1", 3 if i == 0 else 1)
 
     return []
 

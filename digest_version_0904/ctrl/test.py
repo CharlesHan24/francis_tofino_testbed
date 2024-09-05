@@ -117,11 +117,11 @@ if __name__ == "__main__":
             for i in range(graph.m):
                 os.system("tc qdisc add dev veth{} root netem delay {}ms".format(i, 20))
 
-        for i in range(graph.m):
-            port_up(ctrl_manager, i, loopback_mode)
+        # for i in range(graph.m):
+        #     port_up(ctrl_manager, i, loopback_mode)
         
-        port_up(ctrl_manager, RECIRC_PORT, loopback_mode)
-        port_up(ctrl_manager, RECIRC_PORT ^ 1, loopback_mode)
+        # port_up(ctrl_manager, RECIRC_PORT, loopback_mode)
+        # port_up(ctrl_manager, RECIRC_PORT ^ 1, loopback_mode)
         
         if args.target == "hw":
             assert(args.n == 15)
