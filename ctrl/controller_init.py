@@ -319,7 +319,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
     
         for k in range(n): # self_id
 
-            ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [k, cur_root_map[k], fat_tree_graph.calc_neighbors(k) + 1, 0, i * n + k], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255])
+            ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, i, k], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index", "digest_type"], [k, cur_root_map[k], fat_tree_graph.calc_neighbors(k) + 1, 0, i * n + k, 0], is_ternary=True, ternary_mask_list=[-1, 255, -1, 255])
             total_entries += 1
 
     # For other messages
@@ -335,7 +335,7 @@ def config_ma_tables(ctrl_manager: Ctrl_Manager, slow_treeroots, fat_tree_graph:
                 #     port = 48 + (self_id - 12) * 2 + port_delta
 
                 for k in range(ntrees):
-                    ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, k, fake_redund_self_id_match], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index"], [self_id, cur_root_map[self_id], fat_tree_graph.calc_neighbors(self_id) + 1, 1 << port_delta, k * n + self_id], is_ternary=True, ternary_mask_list=[-1, 255, -1, 0])
+                    ctrl_manager.table_add("init_basic_info_tab", ["hdr.msg_type.type", "ig_intr_md.ingress_port", "hdr.pld.tree_id", "hdr.pld.self_id"], [msg_type, port, k, fake_redund_self_id_match], "init_basic_info_action", ["self_id", "slow_recons_root", "neighbor_cnt", "ig_port_pow_2", "index", "digest_type"], [self_id, cur_root_map[self_id], fat_tree_graph.calc_neighbors(self_id) + 1, 1 << port_delta, k * n + self_id, 1 if msg_type == 0 or msg_type == 5 or msg_type == 6 else 0], is_ternary=True, ternary_mask_list=[-1, 255, -1, 0])
                     total_entries += 1
     # pdb.set_trace()
 

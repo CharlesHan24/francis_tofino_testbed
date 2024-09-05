@@ -278,7 +278,7 @@ control SwitchIngress(inout ig_headers hdr,
     
     
 
-    action init_basic_info_action(bit<8> self_id, bit<8> slow_recons_root, bit<32> neighbor_cnt, bit<32> ig_port_pow_2, bit<8> index) {
+    action init_basic_info_action(bit<8> self_id, bit<8> slow_recons_root, bit<32> neighbor_cnt, bit<32> ig_port_pow_2, bit<8> index, bit<3> digest_type) {
         ig_md.ig_port_pow_2 = ig_port_pow_2;
         hdr.pld.self_id = self_id; // the logical switch id of itself. 
         /* the logical switch_id is assigned by the following rule:
@@ -293,7 +293,7 @@ control SwitchIngress(inout ig_headers hdr,
 
         ig_md.ingress_timestamp =  ig_intr_prsr_md.global_tstamp; // ig_intr_md.ingress_mac_tstamp;  // ig_intr_prsr_md.global_tstamp;
         ig_md.old_msg_type = hdr.msg_type.type;
-        ig_intr_dprsr_md.digest_type = CPU_DIGEST;
+        ig_intr_dprsr_md.digest_type = digest_type;
     }
 
     action init_ping_info_action(bit<8> slow_recons_root, bit<32> neighbor_cnt, bit<32> ig_port_pow_2, bit<8> index) {
