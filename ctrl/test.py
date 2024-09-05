@@ -53,9 +53,22 @@ def tcpdump_sniffing(port, skip_running, cbs, teardown_hdls):
 
 def digest_sniffing(ctrl_manager, skip_running, cbs, teardown_hdls):
     cbs()
-    teardown_hdls()
+    all_msgs = []
+    ts = time.time()
+    while True:
+        msgs = ctrl_manager.retrieve_digest_msg()
+        all_msgs.append(msgs)
+        if time.time() - ts > 0.1:
+            break
 
-    msgs = ctrl_manager.retrieve_digest_msg()
+    teardown_hdls()
+    msgs = []
+    for all_msg in all_msgs:
+        for msg in all_msg:
+            msgs.append(msg)
+
+    pdb.set_trace()
+    
     return msgs
 
 
