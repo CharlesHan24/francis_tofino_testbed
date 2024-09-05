@@ -96,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip_running", type=int, default=0)
     parser.add_argument("--bandwidth", type=int, default=10)
     parser.add_argument("--monitor_node", type=str)
+    parser.add_argument("--trial", type=int, default=0)
 
     args = parser.parse_args()
 
@@ -247,4 +248,4 @@ if __name__ == "__main__":
     mn_time /= 10**9
 
     
-    print("time elapsed for slow_recons = {}, fast = {}".format((mx_time_recons - mn_time + 5e-5) * 1000000, (mx_time_fast - mn_time + 5e-5) * 1000000))
+    print("time elapsed for slow_recons = {}, fast = {}".format((mx_time_recons - mn_time) * 1000000, (mx_time_fast - mn_time) * 1000000))
