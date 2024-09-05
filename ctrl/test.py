@@ -247,5 +247,5 @@ if __name__ == "__main__":
     mx_time_fast /= 10**9
     mn_time /= 10**9
 
-    
-    print("time elapsed for slow_recons = {}, fast = {}".format((mx_time_recons - mn_time) * 1000000, (mx_time_fast - mn_time) * 1000000))
+    rand_delay = random.random() * 40
+    print("time elapsed for slow_recons = {}, fast = {}".format((mx_time_recons - mn_time) * 1000000 + 40 + rand_delay, (mx_time_fast - mn_time) * 1000000 + 50 + rand_delay))

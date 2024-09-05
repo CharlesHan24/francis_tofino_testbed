@@ -104,7 +104,7 @@ def config_timer_pktgen(ctrl_manager, fat_tree_graph: Graph, cfgs): # cfgs parse
     
 
     # app 2
-    period = 50000 * SIMULATION_TIME_MULTIPLIER * 2 + int(random.random() * 40000) # 50000 ns. 3 batches for a total of 2 * 50000 = 100000 ns
+    period = 50000 * SIMULATION_TIME_MULTIPLIER # 50000 ns. 
     data = pktgen_app_cfg_table.make_data([gc.DataTuple('timer_nanosec', period),
                                             gc.DataTuple('app_enable', bool_val=False),
                                             gc.DataTuple('pkt_len', (pktlen)),
