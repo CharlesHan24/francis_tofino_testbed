@@ -8,7 +8,7 @@ import pdb
 
 from utils import *
 from graph import Graph
-verstr="3.9"
+verstr="3.5"
 sys.path.append(os.path.expandvars('$SDE/install/lib/python'+verstr+'/site-packages/tofino/'))
 sys.path.append(os.path.expandvars('$SDE/install/lib/python'+verstr+'/site-packages/tofino/bfrt_grpc/'))
 """
